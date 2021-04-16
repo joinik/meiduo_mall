@@ -162,7 +162,7 @@ var vm = new Vue({
                 responseType: 'json',
                 withCredentials:true,
             })
-                .then(response => {
+                if(response.data.code==0) {
                     // 表示后端发送短信成功
                     // 倒计时60秒，60秒后允许用户再次点击发送短信验证码的按钮
                     var num = 60;
@@ -181,16 +181,10 @@ var vm = new Vue({
                             this.sms_code_tip = num + '秒';
                         }
                     }, 1000, 60)
-                })
-                .catch(error => {
-                    if (error.response.status == 400) {
-                        this.error_sms_code_message = error.response.data.message;
-                        this.error_sms_code = true;
-                    } else {
-                        console.log(error.response.data);
-                    }
-                    this.sending_flag = false;
-                })
+                }else{
+                    this.error_sms_code_message = response.data.message;
+                    this.error_sms_code = true;
+                }
         },
         // 注册
         on_submit: function () {

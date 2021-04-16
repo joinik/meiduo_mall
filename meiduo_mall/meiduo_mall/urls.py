@@ -33,4 +33,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('testlog/', testlog),
     path('', include("apps.users.urls")),
+    path('', include("apps.verifications.urls")),
 ]
