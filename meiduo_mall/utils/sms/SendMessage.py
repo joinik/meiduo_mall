@@ -16,13 +16,14 @@ class Sms:
             cls._instance.sms_sdk = SmsSDK(accId, accToken, appId)
         return cls._instance
 
-    def send_message(self, mobile, datas, tid="1"):
+    def send_message(self, mobile='15532272912', datas=(111111,5), tid="1"):
         # tid = '容联云通讯创建的模板'
         # mobile = '手机号1,手机号2'
         # datas = ('变量1', '变量2')
 
         resp = self.sms_sdk.sendMessage(tid, mobile, datas)
         resp_dict = json.loads(resp)
+        print('>>>>>>>>短信函数')
         # {"statusCode":"000000","templateSMS":{"smsMessageSid":"04983ea5ab374e95b84eece5f43e1f08","dateCreated":"20210415091559"}}
         if resp_dict.get("statusCode") == "000000":
             print("发送短信成功")
@@ -38,4 +39,4 @@ class Sms:
 
 if __name__ == '__main__':
 
-    Sms.send_message()
+    Sms().send_message()

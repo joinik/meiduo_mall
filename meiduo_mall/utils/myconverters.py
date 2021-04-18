@@ -3,10 +3,10 @@
 
 class UsernameConverter:
     regex = '[a-zA-Z0-9_-]{5,20}'
-    print("用户》》》》")
+
     def to_python(self, value):
         print(value)
-        print(">>>>>>>>>>>>>>>>>>>>>>>>")
+
         return value
 
     def to_url(self, value):
