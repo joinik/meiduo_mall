@@ -34,4 +34,6 @@ urlpatterns = [
     path('testlog/', testlog),
     path('', include("apps.users.urls")),
     path('', include("apps.verifications.urls")),
+    # areas
+    path('', include('apps.areas.urls')),
 ]

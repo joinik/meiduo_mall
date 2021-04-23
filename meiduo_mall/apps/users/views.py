@@ -9,6 +9,8 @@ from django.views import View
 from django_redis import get_redis_connection
 
 from apps.users.models import User
+from apps.users.utils import generate_verify_email_url, check_verify_email_url
+from celery_tasks.email.tasks import logger
 
 """
 判断用户名是否重复
@@ -31,6 +33,18 @@ class UsernameCountView(View):
         return JsonResponse({"count": count, "code": "0", "errmsg": "ok"})
 
 
+
+"""
+判断手机号是否重复注册
+前端：用户输入手机号，失去焦点， 发送一个axios(ajax)请求
+后端：
+    接收请求，： 接收用户
+	路由； get mobiles/<phone:mobile>/count/
+	业务逻辑：
+		根据手机号，查询数据库， 查询当前数量， 数量大于0说明已经注册过了
+	响应：json格式
+		{"count":1, "code": "0", "errmsg": "ok"}
+"""
 class MobileCountView(View):
     def get(self, request, mobile):
         # print(mobile)
@@ -91,7 +105,6 @@ class RegisterView(View):
         if redis_sms_code.decode().lower() != sms_code.lower():
             return JsonResponse({'code': 400, 'errmsg': "短信验证码输入错误"})
 
-
         try:
             # uesr = User(username=username, password=password, mobile=mobile)
             # user.save();
@@ -113,9 +126,6 @@ class RegisterView(View):
         return http
 
 
-
-
-
 """
 登陆
 
@@ -133,8 +143,10 @@ class RegisterView(View):
         {"code":"400","errmsg":"fail"}
 
 """
+
+
 class LoginView(View):
-    def post(self,request):
+    def post(self, request):
 
         # 1 获取参数
         data_dict = json.loads(request.body)
@@ -143,7 +155,7 @@ class LoginView(View):
         remembered = data_dict.get("remembered")
 
         # 2 校验 参数
-        if not all([username,password]):
+        if not all([username, password]):
             return JsonResponse({"code": "400", "errmsg": "参数不全"})
 
         # 根据用户输入的username 判断是手机号还是用户名
@@ -153,15 +165,13 @@ class LoginView(View):
         else:
             User.USERNAME_FIELD = 'username'
 
-
-
         # 3 验证用户
-        user = authenticate(username=username,password=password)
+        user = authenticate(username=username, password=password)
         if not user:
             return JsonResponse({"code": "400", "errmsg": "用户名或者密码错误"})
 
         # 4 session 保存
-        login(request,user)
+        login(request, user)
 
         # 5 保持登录状态  判断是否记住登录 设置session的有效期
         if not remembered:
@@ -173,7 +183,7 @@ class LoginView(View):
 
         # 6 返回响应
         http = JsonResponse({"code": "0", "errmsg": "登录成功"})
-        http.set_cookie("username",user.username, max_age=3600*24*5)
+        http.set_cookie("username", user.username, max_age=3600 * 24 * 5)
         return http
 
 
@@ -205,3 +215,157 @@ class LogoutView(View):
         # 3返回响应
 
         return response
+
+
+from utils.viewsMixin import LoginRequiredJSONMixin
+
+
+class UserInfoView(LoginRequiredJSONMixin, View):
+    """用户中心"""
+
+    def get(self, request):
+        """提供个人信息界面"""
+
+        # 获取界面需要的数据,进行拼接
+        info_data = {
+            'username': request.user.username,
+            'mobile': request.user.mobile,
+            'email': request.user.email,
+            'email_active': request.user.email_active
+        }
+
+        # 返回响应
+        return JsonResponse({'code': 0,
+                             'errmsg': 'ok',
+                             'info_data': info_data})
+
+
+"""
+添加邮箱
+
+前端： 用户输入邮箱，用户点击保存，发送请求
+
+后端：
+    接收请求   
+    业务逻辑:
+        验证邮箱 参数， 
+    路由 put '/emails/' 
+    响应：json数据
+        {'code': 0, 'errmsg': '添加邮箱成功'}
+        {'code': 400, 'errmsg': '邮箱错误'}
+        
+"""
+from django import http
+
+
+class SaveEmailView(View):
+    """添加邮箱"""
+
+    def put(self, request):
+        """实现添加邮箱逻辑"""
+        # 接收参数
+        json_dict = json.loads(request.body.decode())
+        email = json_dict.get('email')
+
+        # 校验参数
+        if not email:
+            return http.JsonResponse({'code': 400,
+                                      'errmsg': '缺少email参数'})
+        if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+            return http.JsonResponse({'code': 400,
+                                      'errmsg': '参数email有误'})
+
+        # 赋值email字段
+        try:
+            request.user.email = email
+            request.user.save()
+        except Exception as e:
+            logger.error(e)
+            return http.JsonResponse({'code': 400, 'errmsg': '添加邮箱失败'})
+
+        # 异步发送验证邮件
+        from celery_tasks.email.tasks import send_verify_email
+        # 生成验证链接
+        # verify_url = '邮件验证链接'
+        verify_url = generate_verify_email_url(request.user)
+        subject = "美多商城邮箱验证"
+        # 拼接 邮件内容
+        html_message = '<p>尊敬的用户您好！</p>' \
+                       '<p>感谢您使用美多商城。</p>' \
+                       '<p>您的邮箱为：%s 。请点击此链接激活您的邮箱：</p>' \
+                       '<p><a href="%s">%s<a></p>' % (email, verify_url, verify_url)
+
+        send_verify_email.delay(subject=subject, to_email=email, html_message=html_message)
+
+        # 响应添加邮箱结果
+        return http.JsonResponse({'code': 0, 'errmsg': '添加邮箱成功'})
+
+
+"""验证邮箱"""
+
+
+class VerifyEmailView(View):
+    def put(self, request):
+        print('-----验证邮箱-----')
+        # 1, 获取token
+        token = request.GET.get('token')
+        # 2. 解密token
+        user = check_verify_email_url(token)
+        # 3. 数据库验证，
+        try:
+            user = User.objects.filter(id=user.id, email=user.email).get()
+        except Exception as e:
+            print(e)
+            return JsonResponse({'code': 400, 'errmsg': '参数有误'})
+
+        # 4. 设置邮箱已激活
+        try:
+            user.email_active = True
+            user.save()
+        except Exception as e:
+            print(e)
+        return JsonResponse({'code': 0, 'errmsg': '邮箱激活成功'})
+
+
+
+
+"""修改密码"""
+class UpdataPassword(LoginRequiredJSONMixin,View):
+    def put(self,request):
+        # 接收参数
+        body_dict = json.loads(request.body)
+        old_password = body_dict.get('old_password')
+        new_password = body_dict.get('new_password')
+        new_password2 = body_dict.get('new_password2')
+        # 进行参数 校验
+        if not all([old_password,new_password,new_password2]):
+            return JsonResponse({'code': 400, 'errmsg': '参数有误'})
+
+        if old_password == new_password or new_password2 != new_password or old_password == new_password2:
+            return JsonResponse({'code': 400, 'errmsg': '参数有误'})
+
+        # 与原始密码对比
+        result = request.user.check_password(old_password)
+        if not result:
+            return JsonResponse({'code': 400,
+                                      'errmsg': '原始密码不正确'})
+        try:
+
+        # 进行数据库查询
+            user = User.objects.get(id=request.user.id)
+            user.set_password(new_password2)
+            user.save()
+        # 进行数据修改
+        except Exception as e:
+            print(e)
+            return JsonResponse({'code': 400, 'errmsg': 'fail'})
+
+        # 清除session
+        logout(request, user)
+
+        http = JsonResponse({'code': 0, 'errmsg': '密码修改成功'})
+        http.delete_cookie("username")
+
+        # 返回响应
+        return http
+

@@ -45,7 +45,7 @@ var vm = new Vue({
             if (this.form_address.province_id) {
                 axios.get(this.host + '/areas/' + this.form_address.province_id + '/', {
                     responseType: 'json',
-                    withCredentials:true,
+                    withCredentials: true,
                 })
                     .then(response => {
                         this.cities = response.data.sub_data.subs;
@@ -62,7 +62,7 @@ var vm = new Vue({
             if (this.form_address.city_id) {
                 axios.get(this.host + '/areas/' + this.form_address.city_id + '/', {
                     responseType: 'json',
-                    withCredentials:true,
+                    withCredentials: true,
                 })
                     .then(response => {
                         this.districts = response.data.sub_data.subs;
@@ -75,12 +75,12 @@ var vm = new Vue({
         }
     },
     methods: {
-          // 退出登录按钮
+        // 退出登录按钮
         logoutfunc: function () {
             var url = this.host + '/logout/';
             axios.delete(url, {
                 responseType: 'json',
-                withCredentials:true,
+                withCredentials: true,
             })
                 .then(response => {
                     location.href = 'login.html';
@@ -92,7 +92,7 @@ var vm = new Vue({
         get_province: function () {
             axios.get(this.host + '/areas/', {
                 responseType: 'json',
-                withCredentials:true,
+                withCredentials: true,
             })
                 .then(response => {
                     this.provinces = response.data.province_list;
@@ -189,7 +189,7 @@ var vm = new Vue({
                     var url = this.host + '/addresses/' + this.addresses[this.editing_address_index - 1].id + '/'
                     axios.put(url, this.form_address, {
                         responseType: 'json',
-                        withCredentials:true,
+                        withCredentials: true,
                     })
                         .then(response => {
                             this.addresses[this.editing_address_index - 1] = response.data.address;
@@ -204,7 +204,7 @@ var vm = new Vue({
         // 删除地址
         del_address: function (index) {
             axios.delete(this.host + '/addresses/' + this.addresses[index].id + '/', {
-                withCredentials:true,
+                withCredentials: true,
                 responseType: 'json'
             })
                 .then(response => {
@@ -223,7 +223,7 @@ var vm = new Vue({
         get_address: function () {
             axios.get(this.host + '/addresses/', {
                 responseType: 'json',
-                withCredentials:true
+                withCredentials: true
             })
                 .then(response => {
                     this.addresses = response.data.addresses;
@@ -242,10 +242,10 @@ var vm = new Vue({
         // 设置默认地址
         set_default: function (index) {
             var url = this.host + '/addresses/' + this.addresses[index].id + '/default/'
-             axios.put(url, {}, {
-                        responseType: 'json',
-                        withCredentials:true,
-                    })
+            axios.put(url, {}, {
+                responseType: 'json',
+                withCredentials: true,
+            })
                 .then(response => {
                     // this.default_address_id = this.addresses[index].id;
                     if (response.data.code == 0) {
@@ -273,7 +273,7 @@ var vm = new Vue({
                     title: this.input_title
                 }, {
                     responseType: 'json',
-                    withCredentials:true,
+                    withCredentials: true,
                 })
                     .then(response => {
                         this.addresses[index].title = this.input_title;
