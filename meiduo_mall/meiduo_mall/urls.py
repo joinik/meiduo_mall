@@ -36,4 +36,6 @@ urlpatterns = [
     path('', include("apps.verifications.urls")),
     # areas
     path('', include('apps.areas.urls')),
+    # oauth
+    path('', include('apps.oauth.urls'))
 ]

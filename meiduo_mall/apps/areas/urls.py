@@ -1,7 +1,7 @@
 from django.urls import path, re_path
 
 from apps.areas.views import AreasView, SubsView, CreateAddressView, ShowAddressView, DeleteAddressView, \
-    DefaultAddressView
+    DefaultAddressView, UpdateTitleView
 
 #
 
@@ -12,5 +12,6 @@ urlpatterns = [
     path('addresses/', ShowAddressView.as_view()),
     path('addresses/<add_id>/default/', DefaultAddressView.as_view()),
     path('addresses/<add_id>/', DeleteAddressView.as_view()),
+    path('addresses/<add_id>/title/', UpdateTitleView.as_view()),
 
 ]

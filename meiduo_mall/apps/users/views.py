@@ -33,7 +33,6 @@ class UsernameCountView(View):
         return JsonResponse({"count": count, "code": "0", "errmsg": "ok"})
 
 
-
 """
 判断手机号是否重复注册
 前端：用户输入手机号，失去焦点， 发送一个axios(ajax)请求
@@ -45,6 +44,8 @@ class UsernameCountView(View):
 	响应：json格式
 		{"count":1, "code": "0", "errmsg": "ok"}
 """
+
+
 class MobileCountView(View):
     def get(self, request, mobile):
         # print(mobile)
@@ -302,8 +303,6 @@ class SaveEmailView(View):
 
 
 """验证邮箱"""
-
-
 class VerifyEmailView(View):
     def put(self, request):
         print('-----验证邮箱-----')
@@ -327,18 +326,16 @@ class VerifyEmailView(View):
         return JsonResponse({'code': 0, 'errmsg': '邮箱激活成功'})
 
 
-
-
 """修改密码"""
-class UpdataPassword(LoginRequiredJSONMixin,View):
-    def put(self,request):
+class UpdataPassword(LoginRequiredJSONMixin, View):
+    def put(self, request):
         # 接收参数
         body_dict = json.loads(request.body)
         old_password = body_dict.get('old_password')
         new_password = body_dict.get('new_password')
         new_password2 = body_dict.get('new_password2')
         # 进行参数 校验
-        if not all([old_password,new_password,new_password2]):
+        if not all([old_password, new_password, new_password2]):
             return JsonResponse({'code': 400, 'errmsg': '参数有误'})
 
         if old_password == new_password or new_password2 != new_password or old_password == new_password2:
@@ -348,24 +345,24 @@ class UpdataPassword(LoginRequiredJSONMixin,View):
         result = request.user.check_password(old_password)
         if not result:
             return JsonResponse({'code': 400,
-                                      'errmsg': '原始密码不正确'})
+                                 'errmsg': '原始密码不正确'})
+
         try:
 
-        # 进行数据库查询
+            # 进行数据库查询
             user = User.objects.get(id=request.user.id)
             user.set_password(new_password2)
             user.save()
         # 进行数据修改
         except Exception as e:
             print(e)
-            return JsonResponse({'code': 400, 'errmsg': 'fail'})
+            return JsonResponse({'code': 400, 'errmsg': '密码修改fail'})
 
         # 清除session
-        logout(request, user)
-
+        logout(request)
+        print('清除cookie')
         http = JsonResponse({'code': 0, 'errmsg': '密码修改成功'})
         http.delete_cookie("username")
 
         # 返回响应
         return http
-

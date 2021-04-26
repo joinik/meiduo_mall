@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'apps.users',
     'corsheaders',
     'apps.verifications',
-    'apps.areas'
+    'apps.areas',
+    'apps.oauth'
 ]
 
 MIDDLEWARE = [
