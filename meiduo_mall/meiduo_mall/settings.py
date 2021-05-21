@@ -37,15 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'apps.users',
-    'corsheaders',
-    'apps.verifications',
-    'apps.areas',
-    'apps.oauth'
+    'apps.users',                   # 用户子应用
+    'corsheaders',                  #  跨域子应用
+    'apps.verifications',           # 图片验证子应用
+    'apps.areas',                   # 地址子应用
+    'apps.oauth'                    # 认证子应用
 ]
 
-MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+MIDDLEWARE = [  # 请求是自上而下,响应是自下而上的
+    'corsheaders.middleware.CorsMiddleware',    # 最外层的中间件,用来解决跨域请求问题
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -119,7 +119,7 @@ CACHES = {
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "session"
 
-# CORS
+# CORS 追加 白名单
 CORS_ALLOWED_ORIGINS = (
     'http://127.0.0.1:8080',
     'http://localhost:8080',
@@ -169,18 +169,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-####  邮箱配置
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.163.com'
-EMAIL_PORT = 25
-#发送邮件的邮箱
-EMAIL_HOST_USER = 'jk177668@163.com'
-#在邮箱中设置的客户端授权密码
-EMAIL_HOST_PASSWORD = 'RCJXXSUCDZXWCTQU'
-#收件人看到的发件人
-EMAIL_FROM = '美多商城<jk177668@163.com>'
-# 邮箱验证链接
-EMAIL_VERIFY_URL = 'http://www.meiduo.site:8080/success_verify_email.html'
 
 
 LOGGING = {
@@ -227,3 +215,31 @@ LOGGING = {
 
 #   '应用的名字'
 AUTH_USER_MODEL = 'users.User'
+
+
+####  邮箱配置
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.163.com'
+EMAIL_PORT = 25
+#发送邮件的邮箱
+EMAIL_HOST_USER = 'jk177668@163.com'
+#在邮箱中设置的客户端授权密码
+EMAIL_HOST_PASSWORD = 'RCJXXSUCDZXWCTQU'
+#收件人看到的发件人
+EMAIL_FROM = '美多商城<jk177668@163.com>'
+# 邮箱验证链接
+EMAIL_VERIFY_URL = 'http://www.meiduo.site:8080/success_verify_email.html'
+
+
+# QQ登录参数
+# 我们申请的 客户端id
+QQ_CLIENT_ID = '101474184'
+# 我们申请的 客户端秘钥
+QQ_CLIENT_SECRET = 'c6ce949e04e12ecc909ae6a8b09b637c'
+# 我们申请时添加的: 登录成功后回调的路径
+QQ_REDIRECT_URI = 'http://www.meiduo.site:8080/oauth_callback.html'
+
+# 微博登录参数
+WEIBO_Key = '792720875'
+WEIBO_Secret = '3c42d257cb819b14459aca26ce66f6bc'
+

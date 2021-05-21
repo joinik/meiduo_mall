@@ -173,7 +173,11 @@ var vm = new Vue({
                     })
                     .then(response => {
                         // 记录用户登录状态
-                        location.href = 'http://www.meiduo.site:8080/'
+                        if (response.data.code == 0) {
+                            location.href = 'http://www.meiduo.site:8080/'
+                        }else{
+                            alert(response.data.errmsg)
+                        }
                     })
                     .catch(error=> {
                         if (error.response.status == 400) {

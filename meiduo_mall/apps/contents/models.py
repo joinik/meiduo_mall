@@ -2,8 +2,10 @@ from django.db import models
 
 # Create your models here.
 from django.db import models
-from utils.models import BaseModel
-# Create your models here.
+
+from utils.myModles import BaseModel
+
+
 class ContentCategory(BaseModel):
     """广告内容类别"""
     name = models.CharField(max_length=50, verbose_name='名称')

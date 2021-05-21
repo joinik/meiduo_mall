@@ -4,7 +4,8 @@ from django.db import models
 
 
 from django.db import models
-from utils.models import BaseModel
+from utils.myModles import BaseModel
+
 
 class GoodsCategory(BaseModel):
     """商品类别"""

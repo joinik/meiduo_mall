@@ -273,8 +273,11 @@ class DeleteAddressView(LoginRequiredJSONMixin, View):
         if not all([receiver, province_id, city_id, district_id, place, mobile, ]):
             return JsonResponse({'code': 0, 'errmsg': '参数不全'})
 
-        # if not re.match(r'^1[345789]\d{9}$', mobile):
-        #     return JsonResponse({'code': 400, 'errmsg': '参数mobile有误'})
+        rest = re.match(r'^1[3-9]\d{9}$', mobile)
+        print(rest.group())
+        if not rest:
+            return JsonResponse({'code': 400, 'errmsg': '参数mobile有误'})
+
         if tel:
             if not re.match(r'^(0[0-9]{2,3}-)?([2-9][0-9]{6,7})+(-[0-9]{1,4})?$', tel):
                 return JsonResponse({'code': 400, 'errmsg': '参数tel有误'})

@@ -92,7 +92,29 @@ var vm = new Vue({
                     if (response.data.code == 0) {
                         // 成功则跳转
                         location.href = response.data.login_url;
-                    };
+                    }
+                })
+                // 失败的回调:
+                .catch(error => {
+                    // 打印处理
+                    console.log(error);
+                })
+        },
+         // 用户点击 微博第三方登录按钮之后, 触发该方法:
+        weibo_login: function () {
+            // 获取参数
+            var next = this.get_query_string('next') || '/';
+            // 拼接请求:
+            axios.get(this.host + '/weibo/authorization/?next=' + next, {
+                responseType: 'json',
+                withCredentials:true,
+            })
+            // 成功的回调:
+                .then(response => {
+                    if (response.data.code == 0) {
+                        // 成功则跳转
+                        location.href = response.data.login_url;
+                    }
                 })
                 // 失败的回调:
                 .catch(error => {

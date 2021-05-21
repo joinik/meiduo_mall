@@ -37,5 +37,7 @@ urlpatterns = [
     # areas
     path('', include('apps.areas.urls')),
     # oauth
-    path('', include('apps.oauth.urls'))
+    path('', include('apps.oauth.urls')),
+    path('', include('apps.goods.urls')),
+    path('', include('apps.contents.urls')),
 ]
