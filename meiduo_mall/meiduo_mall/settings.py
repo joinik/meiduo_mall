@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'stnm4yarg+y2r+hrp(!6ho%77h$q^$7x$s@vc$uz*-789$z8p3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -37,11 +37,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',  # 跨域子应用
+    'ckeditor',  # 富⽂文本编辑器器
+    'ckeditor_uploader',  # 富⽂文本编辑器器上传图⽚片模块
+    'haystack',  # 全文检索
+
     'apps.users',                   # 用户子应用
-    'corsheaders',                  #  跨域子应用
     'apps.verifications',           # 图片验证子应用
     'apps.areas',                   # 地址子应用
-    'apps.oauth'                    # 认证子应用
+    'apps.oauth',                    # 认证子应用
+    'apps.goods',                   # 商品子应用
+    'apps.contents',                # 广告子应用
+
 ]
 
 MIDDLEWARE = [  # 请求是自上而下,响应是自下而上的
@@ -168,7 +175,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
 
 
 LOGGING = {
@@ -243,3 +252,35 @@ QQ_REDIRECT_URI = 'http://www.meiduo.site:8080/oauth_callback.html'
 WEIBO_Key = '792720875'
 WEIBO_Secret = '3c42d257cb819b14459aca26ce66f6bc'
 
+
+# FDFS 参数
+# FDFS_CLIENT_CONF = os.path.join(BASE_DIR, '/utils/fastdfs/client.conf')
+FDFS_CLIENT_CONF = "/utils/fastdfs/client.conf"
+FDFS_BASE_URL = 'http://192.168.17.132:8888/'
+
+# 指定自定义的Django文件存储类
+DEFAULT_FILE_STORAGE = 'utils.fastdfs.fdfs_storage.FastDFSStorage'
+
+
+# 富⽂文本编辑器器ckeditor配置
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',  # ⼯工具条功能
+        'height': 300,  # 编辑器器⾼高度
+        'width': 300,  # 编辑器器宽
+    },
+}
+CKEDITOR_UPLOAD_PATH = ''  # 上传图⽚片保存路路径，使⽤用了了FastDFS，所以此处设为''
+
+
+# Haystack
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://192.168.17.132:9200/', # Elasticsearch服务器ip地址，端口号固定为9200
+        'INDEX_NAME': 'meiduo_mall', # Elasticsearch建立的索引库的名称
+    },
+}
+
+# 当添加、修改、删除数据时，自动生成索引
+# HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'

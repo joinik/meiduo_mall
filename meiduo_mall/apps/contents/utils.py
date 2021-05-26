@@ -28,7 +28,18 @@ def get_categories():
         # 构建当前类别的子类别
         for cat2 in cat1.subs.all():
             cat2.sub_cats = []
+
             for cat3 in cat2.subs.all():
-                cat2.sub_cats.append(cat3)
-            categories[group_id]['sub_cats'].append(cat2)
+                cat2.sub_cats.append({
+                    'id': cat3.id,
+                    'name': cat3.name,
+                })
+            # print(cat2.sub_cats)
+            # input("等待---")
+            categories[group_id]['sub_cats'].append({
+                'id': cat2.id,
+                'name': cat2.name,
+                "sub_cats": cat2.sub_cats
+            })
+
     return categories

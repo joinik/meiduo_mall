@@ -5,9 +5,6 @@ from django.shortcuts import render
 from django.views import View
 from django_redis import get_redis_connection
 
-import celery_tasks
-from celery_tasks import sms
-from celery_tasks.sms import tasks
 from utils.captcha.captcha import captcha
 from celery_tasks.sms.tasks import celery_send_sms_code
 

@@ -11,7 +11,7 @@ from QQLoginTool.QQtool import OAuthQQ
 from apps.oauth.models import OAuthQQUser
 from apps.oauth.utils import generate_access_token, check_access_token
 from apps.users.models import User
-from meiduo_mall import settings
+from django.conf import settings
 from utils.weiboOauthTool import OAuthWeibo
 
 """

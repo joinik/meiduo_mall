@@ -1,9 +1,10 @@
+from ckeditor.fields import RichTextField
+from ckeditor_uploader.fields import RichTextUploadingField
 from django.db import models
 
 # Create your models here.
-
-
 from django.db import models
+
 from utils.myModles import BaseModel
 
 
@@ -102,6 +103,10 @@ class SKU(BaseModel):
     is_launched = models.BooleanField(default=True, verbose_name='是否上架销售')
     default_image = models.ImageField(max_length=200, default='', null=True, blank=True, verbose_name='默认图片')
 
+
+    desc_detail = RichTextUploadingField(default='', verbose_name='详细介绍')
+    desc_pack = RichTextField(default='', verbose_name='包装信息')
+    desc_service = RichTextUploadingField(default='', verbose_name='售后服务')
     class Meta:
         db_table = 'tb_sku'
         verbose_name = '商品SKU'
