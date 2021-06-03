@@ -1,3 +1,5 @@
+import json
+
 from django.core.paginator import EmptyPage, Paginator
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -20,7 +22,7 @@ from apps.goods.models import GoodsCategory, SKU
 # 转为字典  返回 json数据
 
 # get请求   /list/<category_id>/skus/
-from apps.goods.utils import get_breadcrumb
+from apps.goods.utils import get_breadcrumb, get_goods_specs
 
 
 class ListView(View):
@@ -131,7 +133,6 @@ class MySearchView(SearchView):
         return JsonResponse(data_list, safe=False)
 
 
-
 class DetailView(View):
     """商品详情页"""
 
@@ -148,12 +149,154 @@ class DetailView(View):
         # 查询面包屑导航
         breadcrumb = get_breadcrumb(sku.category)
         # 查询SKU规格信息
-        # goods_specs = goods_specs = get_goods_and_spec(sku_id)
+        goods_specs = get_goods_specs(sku_id)
 
         # 渲染页面
         context = {
-            'categories':categories,
-            'breadcrumb':breadcrumb,
-            'sku':sku,
+            'categories': categories,
+            'breadcrumb': breadcrumb,
+            'sku': sku,
+            'specs': goods_specs,
         }
         return render(request, 'detail.html', context)
+
+
+
+"""
+
+前端点击进入详情页面会自动发送一个axios请求带着分类id过来
+后端
+    接收请求 获取cat_id
+    业务逻辑 查询有没有数据没有就添加一条有数据就更新数量
+    返回json
+    
+    post请求'/detail/visit/<cat_id>/';112345678
+
+"""
+
+
+class DetailVisitView(View):
+    """详情页分类商品访问量"""
+
+
+    def post(self, request, category_id):
+        try:
+            # 1.获取当前商品
+            category = GoodsCategory.objects.get(id=category_id)
+        except Exception as e:
+            return JsonResponse({'code': 400, 'errmsg': '缺少必传参数'})
+
+        # 2.查询日期数据
+        from datetime import date
+        # 获取当天日期
+        today_date = date.today()
+
+        from apps.goods.models import GoodsVisitCount
+        try:
+            # 3.如果有当天商品分类的数据  就累加数量
+            count_data = category.goodsvisitcount_set.get(date=today_date)
+        except:
+            # 4. 没有, 就新建之后在增加
+            count_data = GoodsVisitCount()
+
+        try:
+            count_data.count += 1
+            count_data.category = category
+            count_data.save()
+        except Exception as e:
+            return JsonResponse({'code': 400, 'errmsg': '新增失败'})
+
+        return JsonResponse({'code': 0, 'errmsg': 'OK'})
+
+
+
+"""
+
+1  只有登录用户可以访问
+2 有顺序按照时间
+3 美多只显示5条没有分页
+
+功能
+    添加浏览记录用户访问到商品详情页的时候
+    查询返回浏览记录用户进入用户中心
+    
+数据保存
+mysql（频繁访问效率不高）商品id  用户id  顺序（时间）
+redis 内存足够大
+使用redis的List类型保存
+
+前端  点击进入详情页面 会自动发送一个axios请求  带着sku_id过来
+后端
+	接收请求  获取sku_id
+	业务逻辑 连接redis 去重复  保存到redis  保存5条
+	返回json
+		
+post请求  /browse_histories/
+参数 sku_id: xxx
+
+redis格式
+
+key                            value
+history_userId                  [sku_id,sku_id,sku_id,sku_id,sku_id]
+
+"""
+
+
+
+from apps.goods.models import SKU
+from django_redis import get_redis_connection
+from utils import viewsMixin
+
+class UserBrowseHistory(viewsMixin,View):
+    """用户浏览记录"""
+
+    def post(self, request):
+        """保存用户浏览记录"""
+        # 接收参数
+        json_dict = json.loads(request.body.decode())
+        sku_id = json_dict.get('sku_id')
+
+        # 校验参数
+        try:
+            SKU.objects.get(id=sku_id)
+        except SKU.DoesNotExist:
+            return JsonResponse({'code': 400, 'errmsg': 'sku不存在'})
+
+        # 保存用户浏览数据
+        redis_conn = get_redis_connection('history')
+        pl = redis_conn.pipeline()
+        user_id = request.user.id
+
+        # 先去重
+        pl.lrem('history_%s' % user_id, 0, sku_id)
+        # 再存储
+        pl.lpush('history_%s' % user_id, sku_id)
+        # 最后截取
+        pl.ltrim('history_%s' % user_id, 0, 4)
+        # 执行管道
+        pl.execute()
+
+        # 响应结果
+        return JsonResponse({'code': 0, 'errmsg': 'OK'})
+
+    def get(self, request):
+        # - 获取用户id
+        # 取出登录的user对象
+        user = request.user
+        # - 连接redis
+        redis_conn = get_redis_connection('history')
+        # - redis获取历史浏览记录的商品id
+        sku_ids = redis_conn.lrange('history_%s' % user.id, 0, -1)
+
+        # - 根据商品id获取商品sku对象 转为字典
+        skus = []
+        for sku_id in sku_ids:
+            sku = SKU.objects.get(id=sku_id)
+            skus.append({
+                'id': sku.id,
+                'name': sku.name,
+                'default_image_url': sku.default_image.url,
+                'price': sku.price
+            })
+        # - 返回json数据
+        return JsonResponse({'code': 0, 'errmsg': 'OK', 'skus': skus})
