@@ -16,7 +16,7 @@ import os
 from datetime import timedelta
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-print(BASE_DIR)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -49,9 +49,10 @@ INSTALLED_APPS = [
     'apps.users',                   # 用户子应用
     'apps.verifications',           # 图片验证子应用
     'apps.areas',                   # 地址子应用
-    'apps.oauth',                    # 认证子应用
+    'apps.oauth',                   # 认证子应用
     'apps.goods',                   # 商品子应用
     'apps.contents',                # 广告子应用
+    'apps.carts',                   # 购物车
 
 ]
 

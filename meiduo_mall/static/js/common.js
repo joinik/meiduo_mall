@@ -1,6 +1,7 @@
 // 获取cookie
 function getCookie(name) {
     var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    console.log(r)
     return r ? r[1] : undefined;
 }
 

@@ -17,7 +17,7 @@ var vm = new Vue({
 
          // 获取cookie中的用户名
     	this.username = getCookie('username');
-
+        console.log(this.username)
 
         this.get_cart()
     },

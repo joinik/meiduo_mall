@@ -45,4 +45,6 @@ urlpatterns = [
     # 富⽂文本编辑器器
     # url(r'^ckeditor/', include('ckeditor_uploader.urls')),
     re_path(r'^ckeditor/', include('ckeditor_uploader.urls')),
+    # carts
+    path('', include('apps.carts.urls')),
 ]

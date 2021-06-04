@@ -94,7 +94,8 @@ class HotGoodsView(View):
 
     def get(self, request, category_id):
         """提供商品热销排行JSON数据"""
-        skus = SKU.objects.filter(category_id=category_id, is_launched=True).order_dy('-sales')[:2]
+
+        skus = SKU.objects.filter(category_id=category_id, is_launched=True).order_by('-sales')[:2]
 
         # 拼接json 数据
         hot_skus = []
@@ -245,9 +246,10 @@ history_userId                  [sku_id,sku_id,sku_id,sku_id,sku_id]
 
 from apps.goods.models import SKU
 from django_redis import get_redis_connection
-from utils import viewsMixin
+from utils.viewsMixin import LoginRequiredJSONMixin
 
-class UserBrowseHistory(viewsMixin,View):
+
+class UserBrowseHistory(LoginRequiredJSONMixin, View):
     """用户浏览记录"""
 
     def post(self, request):
